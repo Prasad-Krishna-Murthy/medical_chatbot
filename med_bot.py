@@ -10,10 +10,27 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Load knowledge base
+# Load knowledge base with error handling
 def load_knowledge_base(file_path):
-    df = pd.read_csv(file_path)
-    return df
+    try:
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            st.error(f"File not found: {file_path}")
+            return None
+        
+        # Load the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Check if the file is empty
+        if df.empty:
+            st.error(f"The file {file_path} is empty.")
+            return None
+        
+        return df
+    
+    except Exception as e:
+        st.error(f"Error loading the knowledge base: {e}")
+        return None
 
 # Preprocess the data
 def preprocess_data(df):
@@ -90,9 +107,12 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
 def main():
     # Load your CSV file
     file_path = "med_bot_data.csv"  # Replace with your CSV file path
-    df = load_knowledge_base(file_path)
     
-    # Preprocess the data
+    # Load and preprocess the knowledge base
+    df = load_knowledge_base(file_path)
+    if df is None:
+        return  # Stop execution if the knowledge base couldn't be loaded
+    
     df = preprocess_data(df)
     
     # Create TF-IDF vectorizer and question vectors
