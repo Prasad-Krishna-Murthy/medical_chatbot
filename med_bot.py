@@ -154,7 +154,6 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             with st.spinner("Refining the answer..."):
                 refined_answer = refine_answer_with_gemini(generative_model, user_query, closest_answer)
                 st.session_state.conversation.append({"role": "Bot", "content": refined_answer})
-                st.experimental_rerun()  # Refresh to display the new message
         else:
             # Step 3: Generate using AI Agent if no match is found
             try:
@@ -169,7 +168,6 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 # Generate response
                 response = generative_model.generate_content(prompt)
                 st.session_state.conversation.append({"role": "Bot", "content": response.text})
-                st.experimental_rerun()  # Refresh to display the new message
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
 
