@@ -10,9 +10,11 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Initialize session state for conversation history
+# Initialize session state for conversation history and user details
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
+if "user_details" not in st.session_state:
+    st.session_state.user_details = {}
 
 # Load knowledge base with error handling
 def load_knowledge_base(file_path):
@@ -73,7 +75,7 @@ def refine_answer_with_gemini(generative_model, user_query, closest_answer):
         # Augment the prompt with context
         context = """
         You are a medical chatbot. Refine the following answer to make it more professional, clear, and actionable.
-        Ensure the response is concise and easy to understand.
+        Ensure the response is concise, easy to understand, and includes bullet points for clarity.
         """
         prompt = f"{context}\n\nUser Query: {user_query}\nClosest Answer: {closest_answer}\nRefined Answer:"
         
@@ -87,6 +89,24 @@ def refine_answer_with_gemini(generative_model, user_query, closest_answer):
 def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     st.title("Medical Chatbot 🩺")
     st.write("Welcome to the Medical Chatbot! Ask me anything about medical topics.")
+    
+    # Collect user details if not already collected
+    if not st.session_state.user_details:
+        st.subheader("Please provide some details to get started:")
+        name = st.text_input("Your Name:")
+        age = st.number_input("Your Age:", min_value=1, max_value=120)
+        gender = st.selectbox("Your Gender:", ["Male", "Female", "Other"])
+        
+        if st.button("Submit"):
+            st.session_state.user_details = {"name": name, "age": age, "gender": gender}
+            st.success("Thank you! You can now start chatting.")
+            st.experimental_rerun()
+        return
+    
+    # Display user details
+    st.write(f"**Name:** {st.session_state.user_details['name']}")
+    st.write(f"**Age:** {st.session_state.user_details['age']}")
+    st.write(f"**Gender:** {st.session_state.user_details['gender']}")
     
     # Display conversation history
     for message in st.session_state.conversation:
@@ -112,10 +132,11 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             # Step 3: Generate using AI Agent if no match is found
             try:
                 # Augment the prompt with context
-                context = """
+                context = f"""
                 You are a medical chatbot. Provide accurate and concise answers to medical questions.
+                The user is {st.session_state.user_details['name']}, {st.session_state.user_details['age']} years old, and identifies as {st.session_state.user_details['gender']}.
                 If the user describes symptoms, suggest possible causes and recommend consulting a doctor for a proper diagnosis.
-                Use a professional tone and format the response clearly.
+                Use a professional tone and format the response clearly with bullet points.
                 """
                 prompt = f"{context}\n\nUser: {user_query}\nBot:"
                 
@@ -125,6 +146,13 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 st.write(f"**Bot (AI-generated):** {response.text}")
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
+    
+    # Add a prompt box for further communication
+    if st.session_state.conversation:
+        follow_up = st.text_input("Continue the conversation or ask a new question:", key="follow_up")
+        if follow_up:
+            st.session_state.conversation.append({"role": "You", "content": follow_up})
+            st.experimental_rerun()
 
 # Main function
 def main():
