@@ -100,7 +100,6 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
         if st.button("Submit"):
             st.session_state.user_details = {"name": name, "age": age, "gender": gender}
             st.success("Thank you! You can now start chatting.")
-            st.experimental_rerun()
         return
     
     # Display user details
@@ -152,7 +151,6 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
         follow_up = st.text_input("Continue the conversation or ask a new question:", key="follow_up")
         if follow_up:
             st.session_state.conversation.append({"role": "You", "content": follow_up})
-            st.experimental_rerun()
 
 # Main function
 def main():
