@@ -76,12 +76,12 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
 
     st.markdown("### Conversation History")
     for message in st.session_state.conversation:
-        if message["role"] == "You":
+        if message["role"] == "User":
             st.markdown(f"<div style='background-color: #e6f7ff; padding: 10px; border-radius: 10px; margin: 5px 0;'><strong>You:</strong> {message['content']}</div>", unsafe_allow_html=True)
         else:
             st.markdown(f"<div style='background-color: #f0f0f0; padding: 10px; border-radius: 10px; margin: 5px 0;'><strong>Bot:</strong> {message['content']}</div>", unsafe_allow_html=True)
 
-    user_query = st.text_input("You:", placeholder="Type your question here...", key="user_input")
+    user_query = st.text_input("User:", placeholder="Type your question here...", key="user_input")
 
     if user_query:
         st.session_state.conversation.append({"role": "You", "content": user_query})
