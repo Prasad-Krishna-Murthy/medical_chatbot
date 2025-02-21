@@ -191,9 +191,9 @@ def main():
     vectorizer, question_vectors = create_vectorizer(df)
     
     # Configure the Generative AI model
-    API_KEY = os.getenv("GOOGLE_API_KEY")  # Use environment variable for API key
+    API_KEY = "your_api_key_here"  # Hardcoded API key (not recommended for production)
     if not API_KEY:
-        st.error("API key not found. Please set the GOOGLE_API_KEY environment variable.")
+        st.error("API key not found. Please provide a valid API key.")
         return
     generative_model = configure_generative_model(API_KEY)
     if generative_model is None:
