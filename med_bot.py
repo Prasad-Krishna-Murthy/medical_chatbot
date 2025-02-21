@@ -18,6 +18,12 @@ def load_knowledge_base(file_path):
             st.error(f"File not found: {file_path}")
             return None
         
+        # Debugging: Print file content
+        with open(file_path, "r") as f:
+            file_content = f.read()
+            st.write("File Content:")
+            st.code(file_content)
+        
         # Load the CSV file
         df = pd.read_csv(file_path)
         
@@ -25,6 +31,10 @@ def load_knowledge_base(file_path):
         if df.empty:
             st.error(f"The file {file_path} is empty.")
             return None
+        
+        # Debugging: Print the first few rows of the DataFrame
+        st.write("First few rows of the knowledge base:")
+        st.write(df.head())
         
         return df
     
@@ -52,8 +62,8 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
     best_match_index = similarities.argmax()
     best_match_score = similarities[best_match_index]
     
-    # Set a similarity threshold (e.g., 0.5)
-    if best_match_score > 0.5:
+    # Increase the threshold to 0.7
+    if best_match_score > 0.7:
         return df.iloc[best_match_index]['short_answer']
     else:
         return None
