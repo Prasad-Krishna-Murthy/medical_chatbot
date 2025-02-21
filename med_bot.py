@@ -107,8 +107,12 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
 
 # Configure the Generative AI model
 def configure_generative_model(api_key):
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-1.5-flash')
+    try:
+        genai.configure(api_key=api_key)
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except Exception as e:
+        st.error(f"Error configuring the generative model: {e}")
+        return None
 
 # Use Gemini to refine and frame a better answer
 def refine_answer_with_gemini(generative_model, user_query, closest_answer):
@@ -187,11 +191,13 @@ def main():
     vectorizer, question_vectors = create_vectorizer(df)
     
     # Configure the Generative AI model
-    API_KEY = "AIzaSyA-9-lTQTWdNM43YdOXMQwGKDy0SrMwo6c"  # Replace with your API key
+    API_KEY = os.getenv("GOOGLE_API_KEY")  # Use environment variable for API key
     if not API_KEY:
         st.error("API key not found. Please set the GOOGLE_API_KEY environment variable.")
         return
     generative_model = configure_generative_model(API_KEY)
+    if generative_model is None:
+        return  # Stop execution if the model couldn't be configured
     
     # Run the chatbot
     medical_chatbot(df, vectorizer, question_vectors, generative_model)
