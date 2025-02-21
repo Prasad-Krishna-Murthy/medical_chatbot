@@ -73,7 +73,7 @@ def refine_answer_with_gemini(generative_model, user_query, closest_answer):
         # Augment the prompt with context
         context = """
         You are a medical chatbot. Refine the following answer to make it more professional, clear, and actionable.
-        Ensure the response is concise and easy to understand.
+        Ensure the response is detailed, well-structured, and includes bullet points for clarity.
         """
         prompt = f"{context}\n\nUser Query: {user_query}\nClosest Answer: {closest_answer}\nRefined Answer:"
         
@@ -113,9 +113,9 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             try:
                 # Augment the prompt with context
                 context = """
-                You are a medical chatbot. Provide accurate and concise answers to medical questions.
+                You are a medical chatbot. Provide accurate, detailed, and well-structured answers to medical questions.
                 If the user describes symptoms, suggest possible causes and recommend consulting a doctor for a proper diagnosis.
-                Use a professional tone and format the response clearly.
+                Use a professional tone and format the response clearly with bullet points.
                 """
                 prompt = f"{context}\n\nUser: {user_query}\nBot:"
                 
