@@ -100,6 +100,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
         if st.button("Submit"):
             st.session_state.user_details = {"name": name, "age": age, "gender": gender}
             st.success("Thank you! You can now start chatting.")
+            st.experimental_rerun()
         return
     
     # Display user details
@@ -109,15 +110,10 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     
     # Display conversation history
     for message in st.session_state.conversation:
-        role = message["role"]
-        content = message["content"]
-        # Replace "You" with the user's name
-        if role == "You":
-            role = st.session_state.user_details["name"]
-        st.write(f"**{role}:** {content}")
+        st.write(f"**{message['role']}:** {message['content']}")
     
     # User input
-    user_query = st.text_input(f"{st.session_state.user_details['name']}:", placeholder="Type your question here...", key="user_input")
+    user_query = st.text_input("You:", placeholder="Type your question here...", key="user_input")
     
     if user_query:
         # Add user query to conversation history
@@ -156,6 +152,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
         follow_up = st.text_input("Continue the conversation or ask a new question:", key="follow_up")
         if follow_up:
             st.session_state.conversation.append({"role": "You", "content": follow_up})
+            st.experimental_rerun()
 
 # Main function
 def main():
