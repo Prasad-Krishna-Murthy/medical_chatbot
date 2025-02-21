@@ -99,8 +99,8 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
     best_match_index = similarities.argmax()
     best_match_score = similarities[best_match_index]
     
-    # Set a similarity threshold (e.g., 0.5)
-    if best_match_score > 0.5:
+    # Set a similarity threshold (e.g., 0.3)
+    if best_match_score > 0.3:  # Lowered threshold for better matching
         return df.iloc[best_match_index]['short_answer']
     else:
         return None
@@ -191,7 +191,7 @@ def main():
     vectorizer, question_vectors = create_vectorizer(df)
     
     # Configure the Generative AI model
-    API_KEY = "your_api_key_here"  # Hardcoded API key (not recommended for production)
+    API_KEY = "AIzaSyA-9-lTQTWdNM43YdOXMQwGKDy0SrMwo6c"  # Replace with your API key
     if not API_KEY:
         st.error("API key not found. Please provide a valid API key.")
         return
