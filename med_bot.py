@@ -18,12 +18,6 @@ def load_knowledge_base(file_path):
             st.error(f"File not found: {file_path}")
             return None
         
-        # Debugging: Print file content
-        with open(file_path, "r") as f:
-            file_content = f.read()
-            st.write("File Content:")
-            st.code(file_content)
-        
         # Load the CSV file
         df = pd.read_csv(file_path)
         
@@ -31,10 +25,6 @@ def load_knowledge_base(file_path):
         if df.empty:
             st.error(f"The file {file_path} is empty.")
             return None
-        
-        # Debugging: Print the first few rows of the DataFrame
-        st.write("First few rows of the knowledge base:")
-        st.write(df.head())
         
         return df
     
@@ -62,8 +52,8 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
     best_match_index = similarities.argmax()
     best_match_score = similarities[best_match_index]
     
-    # Increase the threshold to 0.7
-    if best_match_score > 0.7:
+    # Set a similarity threshold (e.g., 0.5)
+    if best_match_score > 0.5:
         return df.iloc[best_match_index]['short_answer']
     else:
         return None
@@ -73,11 +63,21 @@ def configure_generative_model(api_key):
     genai.configure(api_key=api_key)
     return genai.GenerativeModel('gemini-1.5-flash')
 
-# Check if the question is medical-related
-def is_medical_question(user_query, vectorizer, question_vectors):
-    query_vector = vectorizer.transform([user_query.lower()])
-    similarities = cosine_similarity(query_vector, question_vectors).flatten()
-    return max(similarities) > 0.3  # Adjust threshold as needed
+# Use Gemini to refine and frame a better answer
+def refine_answer_with_gemini(generative_model, user_query, closest_answer):
+    try:
+        # Augment the prompt with context
+        context = """
+        You are a medical chatbot. Refine the following answer to make it more professional, clear, and actionable.
+        Ensure the response is concise and easy to understand.
+        """
+        prompt = f"{context}\n\nUser Query: {user_query}\nClosest Answer: {closest_answer}\nRefined Answer:"
+        
+        # Generate refined response
+        response = generative_model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error refining the answer: {e}"
 
 # Main chatbot function
 def medical_chatbot(df, vectorizer, question_vectors, generative_model):
@@ -87,24 +87,16 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     user_query = st.text_input("You:", placeholder="Type your question here...")
     
     if user_query:
-        # Step 1: Check if the question is medical-related
-        if not is_medical_question(user_query, vectorizer, question_vectors):
-            st.write("**Bot:** This is a medical chatbot. Please ask questions related to medical topics.")
-            return
+        # Step 1: Retrieve from knowledge base
+        closest_answer = find_closest_question(user_query, vectorizer, question_vectors, df)
         
-        # Step 2: Retrieve from knowledge base
-        answer = find_closest_question(user_query, vectorizer, question_vectors, df)
-        
-        if answer:
-            # Format the response better
-            formatted_answer = (
-                f"Based on your query, here's what I found:\n\n"
-                f"**{answer.capitalize()}**\n\n"
-                f"If you have further concerns, please consult a medical professional for a detailed evaluation."
-            )
-            st.write(f"**Bot (from knowledge base):** {formatted_answer}")
+        if closest_answer:
+            # Step 2: Use Gemini to refine the answer
+            with st.spinner("Refining the answer..."):
+                refined_answer = refine_answer_with_gemini(generative_model, user_query, closest_answer)
+                st.write(f"**Bot (refined answer):** {refined_answer}")
         else:
-            # Step 3: Generate using AI Agent
+            # Step 3: Generate using AI Agent if no match is found
             try:
                 # Augment the prompt with context
                 context = """
@@ -116,12 +108,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 
                 # Generate response
                 response = generative_model.generate_content(prompt)
-                formatted_response = (
-                    f"Here's what I think:\n\n"
-                    f"**{response.text}**\n\n"
-                    f"Please consult a doctor for a proper diagnosis and treatment plan."
-                )
-                st.write(f"**Bot (AI-generated):** {formatted_response}")
+                st.write(f"**Bot (AI-generated):** {response.text}")
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
 
