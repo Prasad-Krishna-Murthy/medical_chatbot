@@ -35,8 +35,8 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
     best_match_index = similarities.argmax()
     best_match_score = similarities[best_match_index]
     
-    # Set a similarity threshold (e.g., 0.5)
-    if best_match_score > 0.5:
+    # Increase the threshold to 0.7
+    if best_match_score > 0.7:
         return df.iloc[best_match_index]['short_answer']
     else:
         return None
@@ -57,7 +57,6 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     st.title("Medical Chatbot 🩺")
     st.write("Welcome to the Medical Chatbot! Ask me anything about medical topics.")
     
-    # User input
     user_query = st.text_input("You:", placeholder="Type your question here...")
     
     if user_query:
@@ -75,7 +74,10 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             # Step 3: Generate using AI Agent
             try:
                 # Augment the prompt with context
-                context = "You are a medical chatbot. Provide accurate and concise answers to medical questions."
+                context = """
+                You are a medical chatbot. Provide accurate and concise answers to medical questions.
+                If the user describes symptoms, suggest possible causes and recommend consulting a doctor for a proper diagnosis.
+                """
                 prompt = f"{context}\n\nUser: {user_query}\nBot:"
                 
                 # Generate response
