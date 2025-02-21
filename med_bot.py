@@ -86,7 +86,13 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
         answer = find_closest_question(user_query, vectorizer, question_vectors, df)
         
         if answer:
-            st.write(f"**Bot (from knowledge base):** {answer}")
+            # Format the response better
+            formatted_answer = (
+                f"Based on your query, here's what I found:\n\n"
+                f"**{answer.capitalize()}**\n\n"
+                f"If you have further concerns, please consult a medical professional for a detailed evaluation."
+            )
+            st.write(f"**Bot (from knowledge base):** {formatted_answer}")
         else:
             # Step 3: Generate using AI Agent
             try:
@@ -94,12 +100,18 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 context = """
                 You are a medical chatbot. Provide accurate and concise answers to medical questions.
                 If the user describes symptoms, suggest possible causes and recommend consulting a doctor for a proper diagnosis.
+                Use a professional tone and format the response clearly.
                 """
                 prompt = f"{context}\n\nUser: {user_query}\nBot:"
                 
                 # Generate response
                 response = generative_model.generate_content(prompt)
-                st.write(f"**Bot (AI-generated):** {response.text}")
+                formatted_response = (
+                    f"Here's what I think:\n\n"
+                    f"**{response.text}**\n\n"
+                    f"Please consult a doctor for a proper diagnosis and treatment plan."
+                )
+                st.write(f"**Bot (AI-generated):** {formatted_response}")
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
 
