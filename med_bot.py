@@ -10,49 +10,6 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #f0f2f6;
-    }
-    .stTextInput input {
-        background-color: #ffffff;
-        border-radius: 10px;
-        border: 1px solid #cccccc;
-    }
-    .stButton button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 20px;
-        font-size: 16px;
-    }
-    .stMarkdown {
-        font-family: 'Arial', sans-serif;
-    }
-    .chat-container {
-        background-color: #ffffff;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .user-message {
-        color: #4CAF50;
-        font-weight: bold;
-    }
-    .bot-message {
-        color: #1f78b4;
-        font-weight: bold;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # Initialize session state for conversation history
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
@@ -139,12 +96,12 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     st.markdown("### Conversation History")
     for message in st.session_state.conversation:
         if message["role"] == "You":
-            st.markdown(f"<div class='chat-container'><div class='user-message'>You:</div> {message['content']}</div>", unsafe_allow_html=True)
+            st.markdown(f"**You:** {message['content']}")
         else:
-            st.markdown(f"<div class='chat-container'><div class='bot-message'>Bot:</div> {message['content']}</div>", unsafe_allow_html=True)
+            st.markdown(f"**Bot:** {message['content']}")
     
     # User input
-    user_query = st.text_input("Type your question here...", key="user_input")
+    user_query = st.text_input("You:", placeholder="Type your question here...", key="user_input")
     
     if user_query:
         # Add user query to conversation history
@@ -158,6 +115,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             with st.spinner("Refining the answer..."):
                 refined_answer = refine_answer_with_gemini(generative_model, user_query, closest_answer)
                 st.session_state.conversation.append({"role": "Bot", "content": refined_answer})
+                st.markdown(f"**Bot (refined answer):** {refined_answer}")
         else:
             # Step 3: Generate using AI Agent if no match is found
             try:
@@ -172,6 +130,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 # Generate response
                 response = generative_model.generate_content(prompt)
                 st.session_state.conversation.append({"role": "Bot", "content": response.text})
+                st.markdown(f"**Bot (AI-generated):** {response.text}")
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
 
@@ -193,7 +152,7 @@ def main():
     # Configure the Generative AI model
     API_KEY = "AIzaSyA-9-lTQTWdNM43YdOXMQwGKDy0SrMwo6c"  # Replace with your API key
     if not API_KEY:
-        st.error("API key not found. Please provide a valid API key.")
+        st.error("API key not found. Please set the GOOGLE_API_KEY environment variable.")
         return
     generative_model = configure_generative_model(API_KEY)
     if generative_model is None:
