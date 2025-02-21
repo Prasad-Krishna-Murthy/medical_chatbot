@@ -109,10 +109,15 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     
     # Display conversation history
     for message in st.session_state.conversation:
-        st.write(f"**{message['role']}:** {message['content']}")
+        role = message["role"]
+        content = message["content"]
+        # Replace "You" with the user's name
+        if role == "You":
+            role = st.session_state.user_details["name"]
+        st.write(f"**{role}:** {content}")
     
     # User input
-    user_query = st.text_input("You:", placeholder="Type your question here...", key="user_input")
+    user_query = st.text_input(f"{st.session_state.user_details['name']}:", placeholder="Type your question here...", key="user_input")
     
     if user_query:
         # Add user query to conversation history
