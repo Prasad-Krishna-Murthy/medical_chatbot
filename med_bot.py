@@ -10,6 +10,10 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# Initialize session state for conversation history
+if "conversation" not in st.session_state:
+    st.session_state.conversation = []
+
 # Load knowledge base with error handling
 def load_knowledge_base(file_path):
     try:
@@ -84,9 +88,17 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
     st.title("Medical Chatbot 🩺")
     st.write("Welcome to the Medical Chatbot! Ask me anything about medical topics.")
     
-    user_query = st.text_input("You:", placeholder="Type your question here...")
+    # Display conversation history
+    for message in st.session_state.conversation:
+        st.write(f"**{message['role']}:** {message['content']}")
+    
+    # User input
+    user_query = st.text_input("You:", placeholder="Type your question here...", key="user_input")
     
     if user_query:
+        # Add user query to conversation history
+        st.session_state.conversation.append({"role": "You", "content": user_query})
+        
         # Step 1: Retrieve from knowledge base
         closest_answer = find_closest_question(user_query, vectorizer, question_vectors, df)
         
@@ -94,6 +106,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
             # Step 2: Use Gemini to refine the answer
             with st.spinner("Refining the answer..."):
                 refined_answer = refine_answer_with_gemini(generative_model, user_query, closest_answer)
+                st.session_state.conversation.append({"role": "Bot", "content": refined_answer})
                 st.write(f"**Bot (refined answer):** {refined_answer}")
         else:
             # Step 3: Generate using AI Agent if no match is found
@@ -108,6 +121,7 @@ def medical_chatbot(df, vectorizer, question_vectors, generative_model):
                 
                 # Generate response
                 response = generative_model.generate_content(prompt)
+                st.session_state.conversation.append({"role": "Bot", "content": response.text})
                 st.write(f"**Bot (AI-generated):** {response.text}")
             except Exception as e:
                 st.error(f"Sorry, I couldn't generate a response. Error: {e}")
