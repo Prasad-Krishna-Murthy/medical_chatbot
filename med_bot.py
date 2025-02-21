@@ -37,8 +37,8 @@ def find_closest_question(user_query, vectorizer, question_vectors, df):
     else:
         return None
 
-def configure_generative_model(api_key):
-    genai.configure(api_key=api_key)
+def configure_generative_model("AIzaSyA-9-lTQTWdNM43YdOXMQwGKDy0SrMwo6c"):
+    genai.configure(api_key="AIzaSyA-9-lTQTWdNM43YdOXMQwGKDy0SrMwo6c")
     return genai.GenerativeModel('gemini-1.5-flash')
 
 def is_medical_question(user_query, vectorizer, question_vectors):
