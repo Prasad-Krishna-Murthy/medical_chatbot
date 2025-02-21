@@ -2,4 +2,4 @@ streamlit
 pandas 
 scikit-learn 
 genai
-tiktoken
+tiktoken --prefer-binary
